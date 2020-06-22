@@ -1,19 +1,11 @@
 # Arduino NS Gamepad for Teensy
 
-This project provides additional USB device types for Teensy LC and 3.x.
-
-USB Joystick provides a generic joystick. This is known to work with
-the Xbox Adaptive Controller (XAC). The XAC is confused by the extra
-USB descriptors in the other USB Joystick types.
-
-USB Serial + Joystick provides a generic joystick with CDC ACM USB serial.
-
 USB NS Gamepad provides a Nintendo Switch (NS) compatible gamepad. This is
 useful for building an arcade console or to adapt other USB devices for use
 with the NS.
 
-This project also adds USB HID flight sticks and gamepads to the USBHost_t36
-library.
+This project adds USB HID flight sticks and gamepads to the USBHost_t36
+library so they can be used with the NS.
 
 ```
 	{ 0x0F0D, 0x00c1, HORIPAD, true},   // Hori Horipad NS compatible gamepad
@@ -21,6 +13,25 @@ library.
 	{ 0x046D, 0xC215, EXTREME3D, true}, // Logitech Extreme 3D Pro
 	{ 0x044F, 0xB10A, T16000M, true}    // Thrustmaster T.16000M FCS
 ```
+
+The Teensy 3.6 acts as a computer-in-the-middle between one or more game
+controllers and the NS. This can be used for co-pilot mode as well as simulator
+control panel/button boxes (car, truck, tractor, etc).
+
+This project also provides additional USB device types for Teensy LC and 3.x.
+
+USB Joystick provides a generic joystick. This is known to work with
+the Xbox Adaptive Controller (XAC). The XAC is confused by the extra
+USB descriptors in the other USB Joystick types.
+
+USB Serial + Joystick provides a generic joystick with CDC ACM USB serial.
+
+This project has not had much testing so watch out for potholes.
+
+If you prefer Python, see the Raspberry Pi version of NSGadget. The Pi has
+enough GPIOs for NS buttons and the model B has 4 USB host ports. The Pi Zero
+is the cheapest option but it is hard to find. See
+https://github.com/gdsports/NSGadget_Pi.
 
 ## Install
 
@@ -58,7 +69,7 @@ cd ~/nsg/arduino-1.8.12
 
 ## examples/NSGamepad
 
-Teensy LC becomes a USB NS Gamepad.
+Teensy LC impersonates a USB NS Gamepad.
 
 Select "NS Gamepad" from the "Tools > USB Type" menu.
 
@@ -117,7 +128,11 @@ Teensy 3.6 USB NS gamepad pass through and conversion.
 
 Select "NS Gamepad" from the "Tools > USB Type" menu.
 
-This example contains proof of concept code for various modes of operation.
+This example contains proof of concept code for various modes of operation. All
+USB controllers are active so the result is a kind of co-pilot mode. The NS
+sees a single gamepad but two or more people can be using controllers. For
+example, one person is driving with one controller while the other is aiming
+and shooting using a different controller.
 
 ### Use flight control stick as a gamepad
 
