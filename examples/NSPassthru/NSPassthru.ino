@@ -9,19 +9,19 @@
  */
 /*
  * MIT License
- * 
+ *
  * Copyright (c) 2020 gdsports625@gmail.com
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -117,6 +117,322 @@ void setup()
   myusb.begin();
 }
 
+// Process input events from a Hori Horipad Nintendo Switch compatible gamepad.
+// This is mostly just a pass through since the USB device port emulates the
+// same device.
+void handle_horipad(int joystick_index)
+{
+  uint64_t axis_mask = joysticks[joystick_index].axisMask();
+  uint32_t buttons = joysticks[joystick_index].getButtons();
+
+  for (uint8_t i = 0; axis_mask != 0; i++, axis_mask >>= 1) {
+    if (axis_mask & 1) {
+      int ax = joysticks[joystick_index].getAxis(i);
+      switch (i) {
+        case 0:
+          NSGamepad.leftXAxis(ax);
+          break;
+        case 1:
+          NSGamepad.leftYAxis(ax);
+          break;
+        case 2:
+          NSGamepad.rightXAxis(ax);
+          break;
+        case 5:
+          NSGamepad.rightYAxis(ax);
+          break;
+        case 9:
+          NSGamepad.dPad(ax);
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  NSGamepad.buttons((uint16_t)buttons);
+}
+
+// Process input events from Logitech Extreme 3D Pro flight control stick
+//
+// The Logitech Extreme 3D Pro joystick (also known as a flight stick)
+// has a large X,Y,twist joystick with an 8-way hat switch on top.
+// This maps the large X,Y axes to the gamepad right thumbstick and
+// the hat switch to the gamepad left thumbstick. There are six
+// buttons on the top of the stick and six on the base. The twist
+// used to control the stick buttons. Each gamepad thumbstick is
+// also a button. For example, clicking the right thumbstick enables
+// stealth mode in Zelda:BOTW.
+//
+// Map LE3DP button numbers to NS gamepad buttons
+//    LE3DP buttons
+//    0 = front trigger
+//    1 = side thumb rest button
+//    2 = top large left
+//    3 = top large right
+//    4 = top small left
+//    5 = top small right
+//
+// Button array (2 rows, 3 columns) on base
+//
+//    7 9 11
+//    6 8 10
+void handle_le3dp(int joystick_index)
+{
+  static const uint8_t BUTTON_MAP[12] = {
+    NSButton_A,             // Front trigger
+    NSButton_B,             // Side thumb trigger
+    NSButton_X,             // top large left
+    NSButton_Y,             // top large right
+    NSButton_LeftTrigger,   // top small left
+    NSButton_RightTrigger,  // top small right
+    NSButton_Minus,
+    NSButton_Plus,
+    NSButton_Capture,
+    NSButton_Home,
+    NSButton_LeftThrottle,
+    NSButton_RightThrottle
+  };
+
+  uint64_t axis_mask = joysticks[joystick_index].axisMask();
+
+  for (uint8_t i = 0; axis_mask != 0; i++, axis_mask >>= 1) {
+    if (axis_mask & 1) {
+      int ax = joysticks[joystick_index].getAxis(i);
+      switch (i) {
+        case 0:
+          // Big stick X axis
+          NSGamepad.leftXAxis(map(ax, 0, 0x3FF, 0, 255));
+          break;
+        case 1:
+          // Big stick Y axis
+          NSGamepad.leftYAxis(map(ax, 0, 0x3FF, 0, 255));
+          break;
+        case 5:
+          //Twist
+          break;
+        case 6:
+          //Slider
+          break;
+        case 9:
+          // direction pad (hat switch)
+          // Convert direction to X,Y for right thumbstick
+          NSGamepad.rightXAxis(dPad2dir_table[ax].xDir);
+          NSGamepad.rightYAxis(dPad2dir_table[ax].yDir);
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  uint32_t buttons = joysticks[joystick_index].getButtons();
+  for (uint8_t i = 0; i < sizeof(BUTTON_MAP); i++) {
+    if (buttons & (1 << i)) {
+      NSGamepad.press(BUTTON_MAP[i]);
+    }
+    else {
+      NSGamepad.release(BUTTON_MAP[i]);
+    }
+  }
+}
+
+// Process input events from Thrustermaster T.16000 flight control stick
+//
+// Map T16K button numbers to NS gamepad buttons
+// The Thrustmaster T.16000M ambidextrous joystick (also known as a flight stick)
+// has a large X,Y,twist joystick with an 8-way hat switch on top.
+// This function maps the large X,Y axes to the gamepad right thumbstick and
+// the hat switch to the gamepad left thumbstick. There are four
+// buttons on the top of the stick and 12 on the base. The twist
+// used to control the stick buttons. Each gamepad thumbstick is
+// also a button. For example, clicking the right thumbstick enables
+// stealth mode in Zelda:BOTW.
+//
+//    Map T16K button numbers to NS gamepad buttons
+//    T16K buttons
+//    0 = trigger
+//    1 = top center
+//    2 = top left
+//    3 = top right
+//
+//    Button array on base, left side
+//
+//    4
+//    9 5
+//      8 6
+//        7
+//
+//    Button array on base, right side
+//
+//          10
+//       11 15
+//    12 14
+//    13
+void handle_t16k(int joystick_index)
+{
+  static const uint8_t BUTTON_MAP[16] = {
+    NSButton_A,             // Trigger
+    NSButton_B,             // Top center
+    NSButton_X,             // Top Left
+    NSButton_Y,             // Top Right
+    NSButton_LeftTrigger,   // Base left 4
+    NSButton_RightTrigger,  // Base left 5
+    NSButton_Minus,         // Base left 6
+    NSButton_Plus,          // Base left 7
+    NSButton_Capture,       // Base left 8
+    NSButton_Home,          // Base left 9
+    NSButton_LeftStick,     // Base right 10
+    NSButton_RightStick,    // Base right 11
+    NSButton_LeftThrottle,  // Base right 12
+    NSButton_RightThrottle, // Base right 13
+    NSButton_Reserved1,     // Base right 14
+    NSButton_Reserved2      // Base right 15
+  };
+  uint64_t axis_mask = joysticks[joystick_index].axisMask();
+
+  for (uint8_t i = 0; axis_mask != 0; i++, axis_mask >>= 1) {
+    if (axis_mask & 1) {
+      int ax = joysticks[joystick_index].getAxis(i);
+      switch (i) {
+        case 0:
+          // Big stick X axis
+          NSGamepad.leftXAxis(map(ax, 0, 0x3FFF, 0, 255));
+          break;
+        case 1:
+          // Big stick Y axis
+          NSGamepad.leftYAxis(map(ax, 0, 0x3FFF, 0, 255));
+          break;
+        case 5:
+          //Twist
+          break;
+        case 6:
+          //Slider
+          break;
+        case 9:
+          // direction pad (hat switch)
+          // Convert direction to X,Y for right thumbstick
+          NSGamepad.rightXAxis(dPad2dir_table[ax].xDir);
+          NSGamepad.rightYAxis(dPad2dir_table[ax].yDir);
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  uint32_t buttons = joysticks[joystick_index].getButtons();
+  for (uint8_t i = 0; i < sizeof(BUTTON_MAP); i++) {
+    if (buttons & (1 << i)) {
+      NSGamepad.press(BUTTON_MAP[i]);
+    }
+    else {
+      NSGamepad.release(BUTTON_MAP[i]);
+    }
+  }
+}
+
+// Process input events from two DragonRise joysticks. Each joystick has
+// one stick and up to 12 buttons. Two are required to create a gamepad.
+//
+// Map two Dragon Rise arcade joysticks to one NS gamepad The Dragon Rise
+// arcade joystick has 1 stick and up to 10 buttons. Two are required to make 1
+// gamepad with 2 sticks plus 18 buttons. The dragonFirst flag determines which
+// joystick is the left or right side of the gamepad.
+//
+void handle_dragonrise(int joystick_index)
+{
+  // Left side of gamepad
+  static const uint8_t BUTTON_MAP_LEFT[12] = {
+    NSButton_LeftThrottle,
+    NSButton_LeftTrigger,
+    NSButton_Minus,
+    255,    // DPAD Up
+    255,    // DPAD Right
+    255,    // DPAD Down
+    255,    // DPAD Left
+    NSButton_LeftStick,
+    NSButton_Capture,
+    NSButton_Reserved1,
+    NSButton_Reserved1,
+    NSButton_Reserved1
+  };
+  // Right side of gamepad
+  static const uint8_t BUTTON_MAP_RIGHT[12] = {
+    NSButton_RightThrottle,
+    NSButton_RightTrigger,
+    NSButton_Plus,
+    NSButton_A,
+    NSButton_B,
+    NSButton_X,
+    NSButton_Y,
+    NSButton_RightStick,
+    NSButton_Home,
+    NSButton_Reserved2,
+    NSButton_Reserved2,
+    NSButton_Reserved2
+  };
+
+  static uint8_t dragonFirst = 255;
+  static uint8_t dpad_bits = 0;
+  uint64_t axis_mask = joysticks[joystick_index].axisMask();
+
+  if (joystick_index < dragonFirst) dragonFirst = joystick_index;
+  for (uint8_t i = 0; axis_mask != 0; i++, axis_mask >>= 1) {
+    if (axis_mask & 1) {
+      int ax = joysticks[joystick_index].getAxis(i);
+      switch (i) {
+        case 0:
+          if (dragonFirst == joystick_index)
+            NSGamepad.rightXAxis(ax);
+          else
+            NSGamepad.leftXAxis(ax);
+          break;
+        case 1:
+          if (dragonFirst == joystick_index)
+            NSGamepad.rightYAxis(ax);
+          else
+            NSGamepad.leftYAxis(ax);
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  uint32_t buttons = joysticks[joystick_index].getButtons();
+  const uint8_t *button_map_ptr;
+  size_t button_map_size;
+  uint8_t button_out;
+  if (joystick_index == dragonFirst) {
+    button_map_size = sizeof(BUTTON_MAP_RIGHT);
+    button_map_ptr = BUTTON_MAP_RIGHT;
+  }
+  else {
+    button_map_size = sizeof(BUTTON_MAP_LEFT);
+    button_map_ptr = BUTTON_MAP_LEFT;
+  }
+  for (uint8_t i = 0; i < button_map_size; i++) {
+    button_out = button_map_ptr[i];
+    if (button_out == 255) {  // direction pad button
+      if (buttons & (1 << i)) {
+        dpad_bits |= (1 << (i - 3));
+      }
+      else {
+        dpad_bits &= ~(1 << (i - 3));
+      }
+      NSGamepad.dPad(DPAD_MAP[dpad_bits]);
+    }
+    else {
+      if (buttons & (1 << i)) {
+        NSGamepad.press(button_out);
+      }
+      else {
+        NSGamepad.release(button_out);
+      }
+    }
+  }
+}
 
 //=============================================================================
 // loop
@@ -126,130 +442,25 @@ void loop()
   myusb.Task();
   PrintDeviceListChanges();
 
-  static uint8_t dragonFirst = 255;
   for (int joystick_index = 0; joystick_index < COUNT_JOYSTICKS; joystick_index++) {
     if (joysticks[joystick_index].available()) {
-      uint64_t axis_mask = joysticks[joystick_index].axisMask();
-      uint64_t axis_changed_mask = joysticks[joystick_index].axisChangedMask();
-      uint32_t buttons = joysticks[joystick_index].getButtons();
-      static uint16_t dragonButtons = 0;
       JoystickController::joytype_t joystickType = joysticks[joystick_index].joystickType();
-      if (JOY_DEBUG) Serial1.printf("Joystick(%d): buttons = %x", joystick_index, buttons);
-      if (joystickType == JoystickController::DRAGONRISE) {
-        if (joystick_index < dragonFirst) dragonFirst = joystick_index;
-        if (dragonFirst == joystick_index) {
-          dragonButtons = (dragonButtons & ~(0x1F << 9)) | ((buttons & 0x1F) << 9);
-          NSGamepad.dPad(DPAD_MAP[(buttons >> 5) & 0xF]);
-        }
-        else {
-          dragonButtons = (dragonButtons & ~0x1FF) | (buttons & 0x1FF);
-        }
-        NSGamepad.buttons(dragonButtons);
+      switch (joystickType) {
+        case JoystickController::HORIPAD:
+          handle_horipad(joystick_index);
+          break;
+        case JoystickController::EXTREME3D: // Logitech Extreme 3D Pro
+          handle_le3dp(joystick_index);
+          break;
+        case JoystickController::T16000M: // Thrustmaster T.16000M
+          handle_t16k(joystick_index);
+          break;
+        case JoystickController::DRAGONRISE:
+          handle_dragonrise(joystick_index);
+          break;
+        default:
+          break;
       }
-      else {
-        NSGamepad.buttons((uint16_t)buttons);
-      }
-      for (uint8_t i = 0; axis_mask != 0; i++, axis_mask >>= 1) {
-        if (axis_mask & 1) {
-          int ax = joysticks[joystick_index].getAxis(i);
-          if (JOY_DEBUG) Serial1.printf(" %d:%d", i, ax);
-          switch (joystickType) {
-            case JoystickController::HORIPAD:
-              switch (i) {
-                case 0:
-                  NSGamepad.leftXAxis(ax);
-                  break;
-                case 1:
-                  NSGamepad.leftYAxis(ax);
-                  break;
-                case 2:
-                  NSGamepad.rightXAxis(ax);
-                  break;
-                case 5:
-                  NSGamepad.rightYAxis(ax);
-                  break;
-                case 9:
-                  NSGamepad.dPad(ax);
-                  break;
-                default:
-                  break;
-              }
-              break;
-            case JoystickController::EXTREME3D: // Logitech Extreme 3D Pro
-              switch (i) {
-                case 0:
-                  // Big stick X axis
-                  NSGamepad.leftXAxis(map(ax, 0, 0x3FF, 0, 255));
-                  break;
-                case 1:
-                  // Bit stick Y axis
-                  NSGamepad.leftYAxis(map(ax, 0, 0x3FF, 0, 255));
-                  break;
-                case 5:
-                  //Twist
-                  break;
-                case 6:
-                  //Slider
-                  break;
-                case 9:
-                  // direction pad (hat switch)
-                  // Convert direction to X,Y for right thumbstick
-                  NSGamepad.rightXAxis(dPad2dir_table[ax].xDir);
-                  NSGamepad.rightYAxis(dPad2dir_table[ax].yDir);
-                  break;
-                default:
-                  break;
-              }
-              break;
-            case JoystickController::T16000M: // Thrustmaster T.16000M
-              switch (i) {
-                case 0:
-                  // Big stick X axis
-                  NSGamepad.leftXAxis(map(ax, 0, 0x3FFF, 0, 255));
-                  break;
-                case 1:
-                  // Bit stick Y axis
-                  NSGamepad.leftYAxis(map(ax, 0, 0x3FFF, 0, 255));
-                  break;
-                case 5:
-                  //Twist
-                  break;
-                case 6:
-                  //Slider
-                  break;
-                case 9:
-                  // direction pad (hat switch)
-                  // Convert direction to X,Y for right thumbstick
-                  NSGamepad.rightXAxis(dPad2dir_table[ax].xDir);
-                  NSGamepad.rightYAxis(dPad2dir_table[ax].yDir);
-                  break;
-                default:
-                  break;
-              }
-              break;
-            case JoystickController::DRAGONRISE:
-              switch (i) {
-                case 0:
-                  if (dragonFirst == joystick_index)
-                    NSGamepad.leftXAxis(ax);
-                  else
-                    NSGamepad.rightXAxis(ax);
-                  break;
-                case 1:
-                  if (dragonFirst == joystick_index)
-                    NSGamepad.leftYAxis(ax);
-                  else
-                    NSGamepad.rightYAxis(ax);
-                  break;
-                default:
-                  break;
-              }
-              break;
-            default:
-              break;
-          } /* switch joystickType */
-        } /* if (axis_mask */
-      } /* for axis_mask */
       if (JOY_DEBUG) Serial1.println();
       joysticks[joystick_index].joystickDataClear();
     } /* if joystick available */
@@ -260,7 +471,8 @@ void loop()
 //=============================================================================
 // Show when devices are added or removed
 //=============================================================================
-void PrintDeviceListChanges() {
+void PrintDeviceListChanges()
+{
   for (uint8_t i = 0; i < CNT_DEVICES; i++) {
     if (*drivers[i] != driver_active[i]) {
       if (driver_active[i]) {
