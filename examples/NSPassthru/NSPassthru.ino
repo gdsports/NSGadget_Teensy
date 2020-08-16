@@ -1,6 +1,6 @@
 /* Teensy 3.6 USB NS gamepad pass through
  *
- * Based on the PJRC joystick.ino  * example program.
+ * Based on the PJRC joystick.ino example program.
  *
  * Select "NS Gamepad" from the "Tools > USB Type" menu
  *
@@ -34,6 +34,16 @@
 #define JOY_DEBUG 0
 
 #include "USBHost_t36.h"
+// Configure the number of buttons.  Be careful not
+// to use a pin for both a digital button and analog
+// axis. The pullup resistor will interfere with
+// the analog voltage.
+#include <Bounce2.h>
+
+#define NUM_BUTTONS 14
+const uint8_t BUTTON_PINS[NUM_BUTTONS] = {23, 22, 21, 20, 7, 18, 6, 19, 8, 12, 9, 13, 11, 10};
+#define NUM_DPAD 4
+const uint8_t DPAD_PINS[NUM_DPAD] = {2, 3, 4, 5};  // Up, Right, Down, Left
 
 USBHost myusb;
 USBHub hub1(myusb);
@@ -83,6 +93,7 @@ const struct dPad2dir {
   {128, 128}  /* 15 Centered */
 };
 
+// Convert the 4 direction buttons to direction pad values
 const uint8_t DPAD_MAP[16] = {
                             // LDRU
   NSGAMEPAD_DPAD_CENTERED,  // 0000 All dpad buttons up
@@ -103,6 +114,9 @@ const uint8_t DPAD_MAP[16] = {
   NSGAMEPAD_DPAD_CENTERED,  // 1111 invalid
 };
 
+Bounce * buttons = new Bounce[NUM_BUTTONS];
+Bounce * dpad = new Bounce[NUM_DPAD];
+
 //=============================================================================
 // Setup
 //=============================================================================
@@ -112,9 +126,41 @@ void setup()
   Serial1.begin(115200);
   // Sends a clean HID report to the NS.
   Serial1.println("\n\nNS Gamepad");
+  for (int i = 0; i < NUM_BUTTONS; i++) {
+    buttons[i].attach( BUTTON_PINS[i] , INPUT_PULLUP  );  //setup the bounce instance for the current button
+    buttons[i].interval(10);                              // interval in ms
+  }
+  for (int i = 0; i < NUM_DPAD; i++) {
+    dpad[i].attach( DPAD_PINS[i] , INPUT_PULLUP  );       //setup the bounce instance for the current button
+    dpad[i].interval(10);                                 // interval in ms
+  }
   NSGamepad.begin();
   Serial1.println("\n\nUSB Host Joystick");
   myusb.begin();
+}
+
+uint32_t update_buttons(uint32_t buttons, uint32_t buttons_old,
+    const uint8_t *button_map, size_t button_map_size)
+{
+  for (uint8_t i = 0; i < button_map_size; i++) {
+    uint8_t button_out;
+    if (button_map == NULL) {
+      button_out = i;
+    }
+    else {
+      button_out = button_map[i];
+    }
+    uint32_t button_bit_mask = 1 << i;
+    if ((buttons & button_bit_mask) && !(buttons_old & button_bit_mask)) {
+      // button fell/press (0->1 transition)
+      NSGamepad.press(button_out);
+    }
+    else if (!(buttons & button_bit_mask) && (buttons_old & button_bit_mask)) {
+      // button rose/release (1->0 transition)
+      NSGamepad.release(button_out);
+    }
+  }
+  return buttons;
 }
 
 // Process input events from a Hori Horipad Nintendo Switch compatible gamepad.
@@ -123,7 +169,6 @@ void setup()
 void handle_horipad(int joystick_index)
 {
   uint64_t axis_mask = joysticks[joystick_index].axisMask();
-  uint32_t buttons = joysticks[joystick_index].getButtons();
 
   for (uint8_t i = 0; axis_mask != 0; i++, axis_mask >>= 1) {
     if (axis_mask & 1) {
@@ -150,7 +195,9 @@ void handle_horipad(int joystick_index)
     }
   }
 
-  NSGamepad.buttons((uint16_t)buttons);
+  static uint32_t buttons_old = 0;
+  buttons_old = update_buttons(joysticks[joystick_index].getButtons(),
+      buttons_old, NULL, 14);
 }
 
 // Process input events from Logitech Extreme 3D Pro flight control stick
@@ -195,6 +242,7 @@ void handle_le3dp(int joystick_index)
   };
 
   uint64_t axis_mask = joysticks[joystick_index].axisMask();
+  static uint8_t twist_old = 0;
 
   for (uint8_t i = 0; axis_mask != 0; i++, axis_mask >>= 1) {
     if (axis_mask & 1) {
@@ -209,15 +257,22 @@ void handle_le3dp(int joystick_index)
           NSGamepad.leftYAxis(map(ax, 0, 0x3FF, 0, 255));
           break;
         case 5:
-          //Twist
+          // Twist axis maps to right stick X (look left and right)
+          NSGamepad.rightXAxis(ax);
+          twist_old = ax;
           break;
         case 6:
-          //Slider
+          // Slider
           break;
         case 9:
           // direction pad (hat switch)
           // Convert direction to X,Y for right thumbstick
-          NSGamepad.rightXAxis(dPad2dir_table[ax].xDir);
+          // If the twist axis is not centered(128), let twist control
+          // the X direction (look left and right). If the twist axis
+          // is centered, the hat controls look left and right.
+          if (twist_old == 128) {
+            NSGamepad.rightXAxis(dPad2dir_table[ax].xDir);
+          }
           NSGamepad.rightYAxis(dPad2dir_table[ax].yDir);
           break;
         default:
@@ -226,15 +281,9 @@ void handle_le3dp(int joystick_index)
     }
   }
 
-  uint32_t buttons = joysticks[joystick_index].getButtons();
-  for (uint8_t i = 0; i < sizeof(BUTTON_MAP); i++) {
-    if (buttons & (1 << i)) {
-      NSGamepad.press(BUTTON_MAP[i]);
-    }
-    else {
-      NSGamepad.release(BUTTON_MAP[i]);
-    }
-  }
+  static uint32_t buttons_old = 0;
+  buttons_old = update_buttons(joysticks[joystick_index].getButtons(),
+      buttons_old, BUTTON_MAP, sizeof(BUTTON_MAP));
 }
 
 // Process input events from Thrustermaster T.16000 flight control stick
@@ -290,6 +339,7 @@ void handle_t16k(int joystick_index)
     NSButton_Reserved2      // Base right 15
   };
   uint64_t axis_mask = joysticks[joystick_index].axisMask();
+  static uint8_t twist_old = 0;
 
   for (uint8_t i = 0; axis_mask != 0; i++, axis_mask >>= 1) {
     if (axis_mask & 1) {
@@ -304,15 +354,22 @@ void handle_t16k(int joystick_index)
           NSGamepad.leftYAxis(map(ax, 0, 0x3FFF, 0, 255));
           break;
         case 5:
-          //Twist
+          // Twist axis maps to right stick X (look left and right)
+          NSGamepad.rightXAxis(ax);
+          twist_old = ax;
           break;
         case 6:
-          //Slider
+          // Slider
           break;
         case 9:
           // direction pad (hat switch)
           // Convert direction to X,Y for right thumbstick
-          NSGamepad.rightXAxis(dPad2dir_table[ax].xDir);
+          // If the twist axis is not centered(128), let twist control
+          // the X direction (look left and right). If the twist axis
+          // is centered, the hat controls look left and right.
+          if (twist_old == 128) {
+            NSGamepad.rightXAxis(dPad2dir_table[ax].xDir);
+          }
           NSGamepad.rightYAxis(dPad2dir_table[ax].yDir);
           break;
         default:
@@ -321,15 +378,9 @@ void handle_t16k(int joystick_index)
     }
   }
 
-  uint32_t buttons = joysticks[joystick_index].getButtons();
-  for (uint8_t i = 0; i < sizeof(BUTTON_MAP); i++) {
-    if (buttons & (1 << i)) {
-      NSGamepad.press(BUTTON_MAP[i]);
-    }
-    else {
-      NSGamepad.release(BUTTON_MAP[i]);
-    }
-  }
+  static uint32_t buttons_old = 0;
+  buttons_old = update_buttons(joysticks[joystick_index].getButtons(),
+      buttons_old, BUTTON_MAP, sizeof(BUTTON_MAP));
 }
 
 // Process input events from two DragonRise joysticks. Each joystick has
@@ -374,7 +425,6 @@ void handle_dragonrise(int joystick_index)
   };
 
   static uint8_t dragonFirst = 255;
-  static uint8_t dpad_bits = 0;
   uint64_t axis_mask = joysticks[joystick_index].axisMask();
 
   if (joystick_index < dragonFirst) dragonFirst = joystick_index;
@@ -400,6 +450,8 @@ void handle_dragonrise(int joystick_index)
     }
   }
 
+  static uint8_t dpad_bits = 0;
+  static uint32_t buttons_old = 0;
   uint32_t buttons = joysticks[joystick_index].getButtons();
   const uint8_t *button_map_ptr;
   size_t button_map_size;
@@ -415,23 +467,105 @@ void handle_dragonrise(int joystick_index)
   for (uint8_t i = 0; i < button_map_size; i++) {
     button_out = button_map_ptr[i];
     if (button_out == 255) {  // direction pad button
+      uint8_t dpad_bit_mask = (1 << (i - 3));
       if (buttons & (1 << i)) {
-        dpad_bits |= (1 << (i - 3));
+        if ((dpad_bits & dpad_bit_mask) == 0) {
+          // button fell/press (0->1 transition)
+          dpad_bits |= dpad_bit_mask;
+          NSGamepad.dPad(DPAD_MAP[dpad_bits]);
+        }
       }
       else {
-        dpad_bits &= ~(1 << (i - 3));
+        if ((dpad_bits & dpad_bit_mask) != 0) {
+          // button rose/release (1->0 transition)
+          dpad_bits &= ~dpad_bit_mask;
+          NSGamepad.dPad(DPAD_MAP[dpad_bits]);
+        }
       }
-      NSGamepad.dPad(DPAD_MAP[dpad_bits]);
     }
     else {
-      if (buttons & (1 << i)) {
+      uint32_t button_bit_mask = 1 << i;
+      if ((buttons & button_bit_mask) && !(buttons_old & button_bit_mask)) {
+        // button fell/press (0->1 transition)
         NSGamepad.press(button_out);
       }
-      else {
+      else if (!(buttons & button_bit_mask) && (buttons_old & button_bit_mask)) {
+        // button rose/release (1->0 transition)
         NSGamepad.release(button_out);
       }
     }
   }
+  buttons_old = buttons;
+}
+
+/* ***** GPIO ******* */
+typedef struct axis_t {
+  uint16_t adcMin;
+  uint16_t adcMax;
+  const uint8_t toMin;
+  const uint8_t toMax;
+} axis_t;
+
+axis_t LeftX = {
+  128, 1024-128, 0, 255
+};
+axis_t LeftY = {
+  128, 1024-128, 255, 0
+};
+axis_t RightX = {
+  128, 1024-128, 0, 255
+};
+axis_t RightY = {
+  128, 1024-128, 255, 0
+};
+
+// Dynamically determine the pot limits because of my craptastic
+// analog sticks.
+uint8_t axisRead(int analogPin, struct axis_t &ax)
+{
+  uint16_t x = analogRead(analogPin);
+  if (x > ax.adcMax) ax.adcMax = x;
+  if (x < ax.adcMin) ax.adcMin = x;
+  return map(x, ax.adcMin, ax.adcMax, ax.toMin, ax.toMax);
+}
+
+void handle_gpio()
+{
+  static uint8_t dpad_bits = 0;
+  for (int i = 0; i < NUM_BUTTONS; i++) {
+    // Update the Bounce instance
+    buttons[i].update();
+    // Button fell means button pressed
+    if ( buttons[i].fell() ) {
+      NSGamepad.press(i);
+    }
+    else if ( buttons[i].rose() ) {
+      NSGamepad.release(i);
+    }
+  }
+
+  for (unsigned i = 0; i < sizeof(DPAD_PINS); i++) {
+    // Update the Bounce instance
+    dpad[i].update();
+    // Button fell means button pressed
+    if ( dpad[i].fell() ) {
+      dpad_bits |= (1 << i);
+      NSGamepad.dPad(DPAD_MAP[dpad_bits]);
+    }
+    else if ( dpad[i].rose() ) {
+      dpad_bits &= ~(1 << i);
+      NSGamepad.dPad(DPAD_MAP[dpad_bits]);
+    }
+  }
+
+  // If nothing is connected to the analog input pins, analogRead returns
+  // random garbage. Uncomment only when joysticks are connected.
+#if 0
+  NSGamepad.leftYAxis(axisRead(3, LeftY));
+  NSGamepad.leftXAxis(axisRead(2, LeftX));
+  NSGamepad.rightYAxis(axisRead(1, RightY));
+  NSGamepad.rightXAxis(axisRead(0, RightX));
+#endif
 }
 
 //=============================================================================
@@ -465,6 +599,8 @@ void loop()
       joysticks[joystick_index].joystickDataClear();
     } /* if joystick available */
   } /* for joystick_index */
+
+  handle_gpio();
   NSGamepad.loop();
 }
 

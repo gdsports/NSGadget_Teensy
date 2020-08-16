@@ -149,11 +149,11 @@ Nintendo Switch -- Teensy 3.6 -- Thrustmaster T.16000M Flight Stick
 
 ### Combine two arcade fight stick kits into one NS gamepad
 
-Each fight stick kit has 9 buttons and 1 joystick (8 way switch). Find them
+Each fight stick kit has 9 buttons and 1 joystick (8 way switch). Find them by
 searching ebay or Amazon for "arcade buttons stick kit". The USB encoder board
 identifies itself as a Dragon Rise joystick. The boards are identical so the
 convention is the first Dragon Rise board the sketch finds is assumed to be the
-left side of the controller. The next board is the right side. Using blue
+right side of the controller. The next board is the left side. Using blue
 buttons for the left side and red buttons for the right continues the blue/red
 joy-con theme.
 
