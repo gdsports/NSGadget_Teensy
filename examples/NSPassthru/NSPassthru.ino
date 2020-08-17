@@ -31,7 +31,9 @@
  * SOFTWARE.
  */
 
-#define JOY_DEBUG 0
+// Leave disabled(0) unless analog joysticks are connected to Teensy analog
+// input pins.
+#define ANALOG_JOYSTICKS  0
 
 #include "USBHost_t36.h"
 // Configure the number of buttons.  Be careful not
@@ -150,14 +152,16 @@ uint32_t update_buttons(uint32_t buttons, uint32_t buttons_old,
     else {
       button_out = button_map[i];
     }
-    uint32_t button_bit_mask = 1 << i;
-    if ((buttons & button_bit_mask) && !(buttons_old & button_bit_mask)) {
-      // button fell/press (0->1 transition)
-      NSGamepad.press(button_out);
-    }
-    else if (!(buttons & button_bit_mask) && (buttons_old & button_bit_mask)) {
-      // button rose/release (1->0 transition)
-      NSGamepad.release(button_out);
+    if (button_out != 255) {
+      uint32_t button_bit_mask = 1 << i;
+      if ((buttons & button_bit_mask) && !(buttons_old & button_bit_mask)) {
+        // button fell/press (0->1 transition)
+        NSGamepad.press(button_out);
+      }
+      else if (!(buttons & button_bit_mask) && (buttons_old & button_bit_mask)) {
+        // button rose/release (1->0 transition)
+        NSGamepad.release(button_out);
+      }
     }
   }
   return buttons;
@@ -451,51 +455,38 @@ void handle_dragonrise(int joystick_index)
   }
 
   static uint8_t dpad_bits = 0;
-  static uint32_t buttons_old = 0;
+  static uint32_t buttons_old_left = 0;
+  static uint32_t buttons_old_right = 0;
   uint32_t buttons = joysticks[joystick_index].getButtons();
-  const uint8_t *button_map_ptr;
-  size_t button_map_size;
   uint8_t button_out;
   if (joystick_index == dragonFirst) {
-    button_map_size = sizeof(BUTTON_MAP_RIGHT);
-    button_map_ptr = BUTTON_MAP_RIGHT;
+    buttons_old_right = update_buttons(buttons, buttons_old_right,
+        BUTTON_MAP_RIGHT, sizeof(BUTTON_MAP_RIGHT));
   }
   else {
-    button_map_size = sizeof(BUTTON_MAP_LEFT);
-    button_map_ptr = BUTTON_MAP_LEFT;
-  }
-  for (uint8_t i = 0; i < button_map_size; i++) {
-    button_out = button_map_ptr[i];
-    if (button_out == 255) {  // direction pad button
-      uint8_t dpad_bit_mask = (1 << (i - 3));
-      if (buttons & (1 << i)) {
-        if ((dpad_bits & dpad_bit_mask) == 0) {
-          // button fell/press (0->1 transition)
-          dpad_bits |= dpad_bit_mask;
-          NSGamepad.dPad(DPAD_MAP[dpad_bits]);
+    buttons_old_left = update_buttons(buttons, buttons_old_left,
+        BUTTON_MAP_LEFT, sizeof(BUTTON_MAP_LEFT));
+    for (uint8_t i = 0; i < sizeof(BUTTON_MAP_LEFT); i++) {
+      button_out = BUTTON_MAP_LEFT[i];
+      if (button_out == 255) {  // direction pad button
+        uint8_t dpad_bit_mask = (1 << (i - 3));
+        if (buttons & (1 << i)) {
+          if ((dpad_bits & dpad_bit_mask) == 0) {
+            // button fell/press (0->1 transition)
+            dpad_bits |= dpad_bit_mask;
+            NSGamepad.dPad(DPAD_MAP[dpad_bits]);
+          }
         }
-      }
-      else {
-        if ((dpad_bits & dpad_bit_mask) != 0) {
-          // button rose/release (1->0 transition)
-          dpad_bits &= ~dpad_bit_mask;
-          NSGamepad.dPad(DPAD_MAP[dpad_bits]);
+        else {
+          if ((dpad_bits & dpad_bit_mask) != 0) {
+            // button rose/release (1->0 transition)
+            dpad_bits &= ~dpad_bit_mask;
+            NSGamepad.dPad(DPAD_MAP[dpad_bits]);
+          }
         }
       }
     }
-    else {
-      uint32_t button_bit_mask = 1 << i;
-      if ((buttons & button_bit_mask) && !(buttons_old & button_bit_mask)) {
-        // button fell/press (0->1 transition)
-        NSGamepad.press(button_out);
-      }
-      else if (!(buttons & button_bit_mask) && (buttons_old & button_bit_mask)) {
-        // button rose/release (1->0 transition)
-        NSGamepad.release(button_out);
-      }
-    }
   }
-  buttons_old = buttons;
 }
 
 /* ***** GPIO ******* */
@@ -559,8 +550,8 @@ void handle_gpio()
   }
 
   // If nothing is connected to the analog input pins, analogRead returns
-  // random garbage. Uncomment only when joysticks are connected.
-#if 0
+  // random garbage. Enable only when joysticks are connected.
+#if ANALOG_JOYSTICKS
   NSGamepad.leftYAxis(axisRead(3, LeftY));
   NSGamepad.leftXAxis(axisRead(2, LeftX));
   NSGamepad.rightYAxis(axisRead(1, RightY));
@@ -595,7 +586,6 @@ void loop()
         default:
           break;
       }
-      if (JOY_DEBUG) Serial1.println();
       joysticks[joystick_index].joystickDataClear();
     } /* if joystick available */
   } /* for joystick_index */
