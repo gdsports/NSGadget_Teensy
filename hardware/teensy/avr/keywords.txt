@@ -26,6 +26,8 @@ IntervalTimer	KEYWORD2
 printf	KEYWORD2
 digitalWriteFast	KEYWORD2
 digitalReadFast	KEYWORD2
+digitalToggleFast	KEYWORD2
+digitalToggle	KEYWORD2
 transmitterEnable	KEYWORD2
 attachRts	KEYWORD2
 attachCts	KEYWORD2
@@ -44,6 +46,8 @@ SerialUSB2	KEYWORD1
 setRX	KEYWORD2
 setTX	KEYWORD2
 write9bit	KEYWORD2
+addMemoryForRead	KEYWORD2
+addMemoryForWrite	KEYWORD2
 clear	KEYWORD2
 EventResponder	LITERAL1
 EventResponderRef	LITERAL1

@@ -35,13 +35,13 @@ https://github.com/gdsports/NSGadget_Pi.
 
 ## Install
 
-Install the [Arduino IDE 1.8.12](https://www.arduino.cc/en/Main/Software) and
-[Teensyduino 1.52](https://www.pjrc.com/teensy/td_download.html).  I highly
+Install the [Arduino IDE 1.8.13](https://www.arduino.cc/en/Main/Software) and
+[Teensyduino 1.53](https://www.pjrc.com/teensy/td_download.html). I highly
 recommend extracting the IDE zip or tar in a separate directory from the
 default Arduino directory.
 
 On a Linux system, the following instructions will install the IDE into
-`~/nsg/arduino-1.8.12`.  Creating the portable directory ensures the sketches and
+`~/nsg/arduino-1.8.13`. Creating the portable directory ensures the sketches and
 libraries are stored separately from the default Arduino sketches and
 libraries.
 
@@ -49,21 +49,21 @@ libraries.
 cd
 mkdir nsg
 cd nsg
-tar xf ~/Downloads/arduino-1.8.12-linux64.tar.xz
-cd arduino-1.8.12
+tar xf ~/Downloads/arduino-1.8.13-linux64.tar.xz
+cd arduino-1.8.13
 mkdir portable
 ```
 
-Run the Teensyduino installer. Make sure to install in the arduino-1.8.12
+Run the Teensyduino installer. Make sure to install in the arduino-1.8.13
 directory created above.
 
-Copy the files in this repo's hardware directory to the arduino-1.8.12/hardware
+Copy the files in this repo's hardware directory to the arduino-1.8.13/hardware
 directory. This will overwrite Teensyduino files.
 
 Start the IDE with all changes.
 
 ```
-cd ~/nsg/arduino-1.8.12
+cd ~/nsg/arduino-1.8.13
 ./arduino&
 ```
 

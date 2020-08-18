@@ -45,6 +45,7 @@ JoystickController::product_vendor_mapping_t JoystickController::pid_vid_mapping
 	{ 0x054C, 0x03D5, PS3_MOTION, true},	// PS3 Motion controller
 	{ 0x054C, 0x05C4, PS4, true}, 	{0x054C, 0x09CC, PS4, true },
 	{ 0x046D, 0xC626, SpaceNav, true},  // 3d Connextion Space Navigator, 0x10008
+	{ 0x046D, 0xC628, SpaceNav, true},  // 3d Connextion Space Navigator, 0x10008
 	{ 0x0F0D, 0x00c1, HORIPAD, true},   // Hori Horipad NS compatible gamepad
 	{ 0x0079, 0x0006, DRAGONRISE, true},// DragonRise Fightstick
 	{ 0x046D, 0xC215, EXTREME3D, true}, // Logitech Extreme 3D Pro
