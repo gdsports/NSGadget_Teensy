@@ -27,6 +27,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+/*
+ * This file started life as usb_joystick.c then was modified for NSGamepad.
+ */
 
 #include "usb_dev.h"
 #include "usb_nsgamepad.h"
@@ -48,31 +51,29 @@ static uint8_t transmit_previous_timeout=0;
 #define TX_TIMEOUT_MSEC 30
 
 #define TX_NUM     4
-#if NSGAMEPAD_SIZE <= 32
-#define TX_BUFSIZE 32
+#if NSGAMEPAD_REPORT_SIZE <= 32
+  #define TX_BUFSIZE 32
 #else
-#define TX_BUFSIZE 64
+  #define TX_BUFSIZE 64
 #endif
 static transfer_t tx_transfer[TX_NUM] __attribute__ ((used, aligned(32)));
 DMAMEM static uint8_t txbuffer[TX_NUM * TX_BUFSIZE] __attribute__ ((aligned(32)));
 static uint8_t tx_head=0;
-#if NSGAMEPAD_SIZE > TX_BUFSIZE
+#if NSGAMEPAD_REPORT_SIZE > TX_BUFSIZE
 #error "Internal error, transmit buffer size is too small for nsgamepad endpoint"
 #endif
 
 
 void usb_nsgamepad_configure(void)
 {
-    printf("usb_nsgamepad_configure 4\n");
     memset(tx_transfer, 0, sizeof(tx_transfer));
     tx_head = 0;
-    usb_config_tx(NSGAMEPAD_ENDPOINT, NSGAMEPAD_SIZE, 0, NULL);
+    usb_config_tx(NSGAMEPAD_ENDPOINT, NSGAMEPAD_REPORT_SIZE, 0, NULL);
 }
 
 
 int usb_nsgamepad_send()
 {
-    printf("usb_nsgamepad_send 4\n");
     if (!usb_configuration) return -1;
     uint32_t head = tx_head;
     transfer_t *xfer = tx_transfer + head;
@@ -88,19 +89,23 @@ int usb_nsgamepad_send()
             transmit_previous_timeout = 0;
             break;
         }
-        if (transmit_previous_timeout) return -1;
+        if (transmit_previous_timeout) {
+            return -1;
+        }
         if (systick_millis_count - wait_begin_at > TX_TIMEOUT_MSEC) {
             // waited too long, assume the USB host isn't listening
             transmit_previous_timeout = 1;
             return -1;
         }
-        if (!usb_configuration) return -1;
+        if (!usb_configuration) {
+            return -1;
+        }
         yield();
     }
     delayNanoseconds(30); // TODO: why is status ready too soon?
     uint8_t *buffer = txbuffer + head * TX_BUFSIZE;
-    memcpy(buffer, usb_nsgamepad_data, NSGAMEPAD_SIZE);
-    usb_prepare_transfer(xfer, buffer, NSGAMEPAD_SIZE, 0);
+    memcpy(buffer, usb_nsgamepad_data, NSGAMEPAD_REPORT_SIZE);
+    usb_prepare_transfer(xfer, buffer, NSGAMEPAD_REPORT_SIZE, 0);
     arm_dcache_flush_delete(buffer, TX_BUFSIZE);
     usb_transmit(NSGAMEPAD_ENDPOINT, xfer);
     if (++head >= TX_NUM) head = 0;
