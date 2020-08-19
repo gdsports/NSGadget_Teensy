@@ -14,15 +14,16 @@ library so they can be used with the NS.
 	{ 0x044F, 0xB10A, T16000M, true}    // Thrustmaster T.16000M FCS
 ```
 
-The Teensy 3.6 acts as a computer-in-the-middle between one or more game
+The Teensy 3.6/4.1 acts as a Teensy-in-the-middle between one or more game
 controllers and the NS. This can be used for co-pilot mode as well as simulator
 control panel/button boxes (car, truck, tractor, etc).
 
-This project also provides additional USB device types for Teensy LC and 3.x.
+This project also provides additional USB device types for Teensy LC, 3.x and
+4.x.
 
 USB Joystick provides a generic joystick. This is known to work with
 the Xbox Adaptive Controller (XAC). The XAC is confused by the extra
-USB descriptors in the other USB Joystick types.
+USB descriptors in the other Teensy USB Joystick types.
 
 USB Serial + Joystick provides a generic joystick with CDC ACM USB serial.
 
@@ -69,7 +70,8 @@ cd ~/nsg/arduino-1.8.13
 
 ## examples/NSGamepad
 
-Teensy LC impersonates a USB NS Gamepad.
+Teensy LC impersonates a USB NS Gamepad. This should also work on Teensy
+3 and Teensy 4.
 
 Select "NS Gamepad" from the "Tools > USB Type" menu.
 
@@ -93,7 +95,7 @@ controllers are much easier to implement.
 ### Teensy LC pin out with button and axis assignments
 
 For a graphic Teensy LC pin out diagram see the [following](https://www.pjrc.com/teensy/teensyLC.html).
-Teensy 3.x should also work but the LC is sufficient.
+Teensy 3.x/4.x should also work but the LC is sufficient.
 
 |Function       |LC Pin |LC Pin |Function   |
 |---------------|-------|-------|-----------|
@@ -116,15 +118,15 @@ Serial1 (RX1/TX1) pins are available for debug output.
 
 For graphic joy-con diagrams see the [following](https://en-americas-support.nintendo.com/app/answers/detail/a_id/22634/~/joy-con-controller-diagram).
 
-Note 1: The thumbsticks are clickable so they also count as buttons. See "Left
-Stick" and "Right Stick" above.
+Note 1: The NS thumbsticks are clickable so they also count as buttons. See
+"Left Stick" and "Right Stick" above.
 
 Note 2: The direction buttons (Up, Right, Down, Left) are reported as an 8
 direction D pad so some combinations cannot be reported.
 
 ## examples/NSPassthru
 
-Teensy 3.6 USB NS gamepad pass through and conversion.
+Teensy 3.6/4.1 USB NS gamepad pass through and conversion.
 
 Select "NS Gamepad" from the "Tools > USB Type" menu.
 
@@ -138,11 +140,13 @@ and shooting using a different controller.
 
 Use one hand to control left and right sticks.
 The hat switch at the top of the stick is mapped to the right thumbstick.
+The big stick twist axis is also mapped to the right thumbstick X axis so it
+can be used to look left and right.
 A nice feature of the Thrustmaster T.16000M is it can be configured for left hand using a
 screwdriver. See the [manual](http://ts.thrustmaster.com/download/accessories/manuals/T16000M/T16000M-User_manual.pdf) for details.
 
 ```
-Nintendo Switch -- Teensy 3.6 -- Thrustmaster T.16000M Flight Stick
+Nintendo Switch -- Teensy 3.6/4.1 -- Thrustmaster T.16000M Flight Stick
 ```
 
 ![Big joystick connected to Nintendo Switch](./images/nst16k.jpg)
@@ -158,15 +162,19 @@ buttons for the left side and red buttons for the right continues the blue/red
 joy-con theme.
 
 ```
-Nintendo Switch -- Teensy 3.6 -- USB hub -- Dragon Rise
-                                         -- Dragon Rise
+Nintendo Switch -- Teensy 3.6/4.1 -- USB hub -- Dragon Rise
+                                             -- Dragon Rise
 ```
 
 ![Arcade console for Nintendo Switch](./images/nsarcade.jpg)
 
-### Gamepad pass through
-Maybe someday use to record and play macros.
+### Gamepad macro recorder
+Maybe someday use to record and play macros. Plug in a Hori Horipad game controller
+and record the axis and button events to a file on the micro SD card.
+
+### Button mapping from micro SD card
+Maybe someday load button mappings from files on the microSD card.
 
 ```
-Nintendo Switch -- Teensy 3.6 -- NS compatible gamepad such as Horipad
+Nintendo Switch -- Teensy 3.6/4.1 -- NS compatible gamepad such as Horipad
 ```
