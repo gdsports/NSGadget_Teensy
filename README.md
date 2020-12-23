@@ -61,7 +61,9 @@ directory created above.
 Copy the files in this repo's hardware directory to the arduino-1.8.13/hardware
 directory. This will overwrite Teensyduino files.
 
-Start the IDE with all changes.
+Start the IDE with all changes. The examples should build without changes. If
+compile errors occur, be sure the Board is set to "Teensy 3.6" and the USB Type
+is set to "NS Gamepad".
 
 ```
 cd ~/nsg/arduino-1.8.13

@@ -321,7 +321,7 @@ let me know?  http://forum.pjrc.com/forums/4-Suggestions-amp-Bug-Reports
   #define NSGAMEPAD_ENDPOINT    1
   #define NSGAMEPAD_SIZE        64
   #define NSGAMEPAD_REPORT_SIZE 8
-  #define NSGAMEPAD_INTERVAL    5
+  #define NSGAMEPAD_INTERVAL    1
   #define ENDPOINT1_CONFIG      ENDPOINT_TRANSMIT_ONLY
 
 #elif defined(USB_HID)

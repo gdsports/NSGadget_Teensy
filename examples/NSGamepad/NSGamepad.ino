@@ -76,8 +76,6 @@ void setup() {
   NSGamepad.begin();
 }
 
-uint32_t nextSecond = 0;
-uint8_t nextButton = 0;
 uint8_t dpad_bits = 0;
 
 typedef struct axis_t {
