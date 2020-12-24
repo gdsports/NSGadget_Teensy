@@ -552,13 +552,13 @@ void buttonRelease(uint8_t button)
 
 void myKeyOn(uint8_t oemkey)
 {
-  if (oemkey > sizeof(KEYCODE2BUTTON)) return;
+  if (oemkey >= sizeof(KEYCODE2BUTTON)) return;
   buttonPress(KEYCODE2BUTTON[oemkey]);
 }
 
 void myKeyOff(uint8_t oemkey)
 {
-  if (oemkey > sizeof(KEYCODE2BUTTON)) return;
+  if (oemkey >= sizeof(KEYCODE2BUTTON)) return;
   buttonRelease(KEYCODE2BUTTON[oemkey]);
 }
 

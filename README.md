@@ -180,3 +180,13 @@ Maybe someday load button mappings from files on the microSD card.
 ```
 Nintendo Switch -- Teensy 3.6/4.1 -- NS compatible gamepad such as Horipad
 ```
+
+## examples/NSMIDI
+
+![Nintendo Switch running Pianista with MIDI keyboard](./examples/NSMIDI/images/midi_pianista.jpg)
+
+The Teensy 3.6 converts MIDI note on/off from a MIDI device to Nintendo
+Switch gamepad button presses/releases. The Switch is not modded or hacked.
+
+Playing Pianista with a MIDI keyboard is lot more fun than using JoyCon
+buttons.
