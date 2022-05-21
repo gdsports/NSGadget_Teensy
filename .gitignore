@@ -31,4 +31,8 @@
 *.out
 *.app
 
-arduino-1.8.13
+## ----------------------------------------------------
+## NSGadget_Teensy
+
+# Arduino IDE
+arduino-*.*.*
