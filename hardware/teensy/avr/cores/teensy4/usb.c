@@ -822,6 +822,9 @@ static void endpoint0_complete(void)
 		usb_audio_set_feature(&endpoint0_setupdata, endpoint0_buffer);
 	}
 #endif
+#ifdef NSGAMEPAD_INTERFACE
+	(void) setup;  // avoid GCC "set but unused" warning
+#endif
 }
 
 static void usb_endpoint_config(endpoint_t *qh, uint32_t config, void (*callback)(transfer_t *))
