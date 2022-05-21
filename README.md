@@ -1,4 +1,5 @@
 # Arduino NS Gamepad for Teensy
+[![Build Status](https://github.com/gdsports/NSGadget_Teensy/workflows/build/badge.svg?branch=master)](https://github.com/gdsports/NSGadget_Teensy/actions?query=workflow%3Abuild)
 
 USB NS Gamepad provides a Nintendo Switch (NS) compatible gamepad. This is
 useful for building an arcade console or to adapt other USB devices for use
