@@ -292,6 +292,12 @@ teensyMM.menu.usb.flightsim.fake_serial=teensy_gateway
 teensyMM.menu.usb.flightsimjoystick=Flight Sim Controls + Joystick
 teensyMM.menu.usb.flightsimjoystick.build.usbtype=USB_FLIGHTSIM_JOYSTICK
 teensyMM.menu.usb.flightsimjoystick.fake_serial=teensy_gateway
+teensyMM.menu.usb.joystick=Joystick
+teensyMM.menu.usb.joystick.build.usbtype=USB_JOYSTICK
+#teensyMM.menu.usb.joystickserial=Joystick + Serial
+#teensyMM.menu.usb.joystickserial.build.usbtype=USB_SERIAL_JOYSTICK
+teensyMM.menu.usb.nsgamepad=NS Gamepad
+teensyMM.menu.usb.nsgamepad.build.usbtype=USB_NSGAMEPAD
 #teensyMM.menu.usb.disable=No USB
 #teensyMM.menu.usb.disable.build.usbtype=USB_DISABLED
 
