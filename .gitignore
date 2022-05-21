@@ -36,3 +36,33 @@
 
 # Arduino IDE
 arduino-*.*.*
+
+# Teensy Modifications
+hardware/teensy/**
+!hardware/teensy/avr/boards.txt
+!hardware/teensy/avr/keywords.txt
+
+# USB Host T36 Library (To Keep)
+#!hardware/teensy/avr/libraries/USBHost_t36
+
+# Teensy 3 Core (To Keep)
+!hardware/teensy/avr/cores/teensy3/
+!hardware/teensy/avr/cores/teensy3/usb_desc.c
+!hardware/teensy/avr/cores/teensy3/usb_desc.h
+!hardware/teensy/avr/cores/teensy3/usb_dev.c
+!hardware/teensy/avr/cores/teensy3/usb_inst.cpp
+!hardware/teensy/avr/cores/teensy3/usb_nsgamepad.c
+!hardware/teensy/avr/cores/teensy3/usb_nsgamepad.h
+!hardware/teensy/avr/cores/teensy3/WProgram.h
+!hardware/teensy/avr/cores/teensy3/yield.cpp
+
+# Teensy 4 Core (To Keep)
+!hardware/teensy/avr/cores/teensy4/
+!hardware/teensy/avr/cores/teensy4/usb.c
+!hardware/teensy/avr/cores/teensy4/usb_desc.c
+!hardware/teensy/avr/cores/teensy4/usb_desc.h
+!hardware/teensy/avr/cores/teensy4/usb_inst.cpp
+!hardware/teensy/avr/cores/teensy4/usb_nsgamepad.c
+!hardware/teensy/avr/cores/teensy4/usb_nsgamepad.h
+!hardware/teensy/avr/cores/teensy4/WProgram.h
+!hardware/teensy/avr/cores/teensy4/yield.cpp
