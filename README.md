@@ -37,13 +37,13 @@ https://github.com/gdsports/NSGadget_Pi.
 
 ## Install
 
-Install the [Arduino IDE 1.8.16](https://www.arduino.cc/en/Main/Software) and
-[Teensyduino 1.55](https://www.pjrc.com/teensy/td_155/). I highly
+Install the [Arduino IDE 1.8.19](https://www.arduino.cc/en/Main/Software) and
+[Teensyduino 1.56](https://www.pjrc.com/teensy/td_156/). I highly
 recommend extracting the IDE zip or tar in a separate directory from the
 default Arduino directory.
 
 On a Linux system, the following instructions will install the IDE into
-`~/nsg/arduino-1.8.16`. Creating the portable directory ensures the sketches and
+`~/nsg/arduino-1.8.19`. Creating the portable directory ensures the sketches and
 libraries are stored separately from the default Arduino sketches and
 libraries.
 
@@ -51,15 +51,15 @@ libraries.
 cd
 mkdir nsg
 cd nsg
-tar xf ~/Downloads/arduino-1.8.16-linux64.tar.xz
-cd arduino-1.8.16
+tar xf ~/Downloads/arduino-1.8.19-linux64.tar.xz
+cd arduino-1.8.19
 mkdir portable
 ```
 
-Run the Teensyduino installer. Make sure to install in the arduino-1.8.16
+Run the Teensyduino installer. Make sure to install in the arduino-1.8.19
 directory created above.
 
-Copy the files in this repo's hardware directory to the arduino-1.8.16/hardware
+Copy the files in this repo's hardware directory to the arduino-1.8.19/hardware
 directory. This will overwrite Teensyduino files.
 
 Start the IDE with all changes. The examples should build without changes. If
@@ -67,7 +67,7 @@ compile errors occur, be sure the Board is set to "Teensy 3.6" and the USB Type
 is set to "NS Gamepad".
 
 ```
-cd ~/nsg/arduino-1.8.16
+cd ~/nsg/arduino-1.8.19
 ./arduino&
 ```
 
