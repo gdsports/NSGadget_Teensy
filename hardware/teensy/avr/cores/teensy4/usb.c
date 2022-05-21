@@ -12,6 +12,7 @@
 #include "usb_touch.h"
 #include "usb_midi.h"
 #include "usb_audio.h"
+#include "usb_mtp.h"
 #include "core_pins.h" // for delay()
 #include "avr/pgmspace.h"
 #include <string.h>
@@ -23,6 +24,8 @@
 //uint32_t transfer_log[LOG_SIZE];
 
 // device mode, page 3155
+
+#if defined(NUM_ENDPOINTS)
 
 typedef struct endpoint_struct endpoint_t;
 
@@ -55,6 +58,10 @@ struct endpoint_struct {
 	uint32_t pointer4;
 	uint32_t callback_param;
 };*/
+
+#ifdef EXPERIMENTAL_INTERFACE
+uint8_t experimental_buffer[1152] __attribute__ ((section(".dmabuffers"), aligned(64)));
+#endif
 
 endpoint_t endpoint_queue_head[(NUM_ENDPOINTS+1)*2] __attribute__ ((used, aligned(4096)));
 
@@ -99,7 +106,7 @@ extern const uint8_t usb_config_descriptor_12[];
 void (*usb_timer0_callback)(void) = NULL;
 void (*usb_timer1_callback)(void) = NULL;
 
-static void isr(void);
+void usb_isr(void);
 static void endpoint0_setup(uint64_t setupdata);
 static void endpoint0_transmit(const void *data, uint32_t len, int notify);
 static void endpoint0_receive(void *data, uint32_t len, int notify);
@@ -192,8 +199,8 @@ FLASHMEM void usb_init(void)
 	// Port Change Detect, USB Reset Received, DCSuspend.
 	USB1_USBINTR = USB_USBINTR_UE | USB_USBINTR_UEE | /* USB_USBINTR_PCE | */
 		USB_USBINTR_URE | USB_USBINTR_SLE;
-	//_VectorsRam[IRQ_USB1+16] = &isr;
-	attachInterruptVector(IRQ_USB1, &isr);
+	//_VectorsRam[IRQ_USB1+16] = &usb_isr;
+	attachInterruptVector(IRQ_USB1, &usb_isr);
 	NVIC_ENABLE_IRQ(IRQ_USB1);
 	//printf("USB1_ENDPTCTRL0=%08lX\n", USB1_ENDPTCTRL0);
 	//printf("USB1_ENDPTCTRL1=%08lX\n", USB1_ENDPTCTRL1);
@@ -206,7 +213,7 @@ FLASHMEM void usb_init(void)
 }
 
 
-static void isr(void)
+void usb_isr(void)
 {
 	//printf("*");
 
@@ -458,6 +465,12 @@ static void endpoint0_setup(uint64_t setupdata)
 		#endif
 		#if defined(AUDIO_INTERFACE)
 		usb_audio_configure();
+		#endif
+		#if defined(MTP_INTERFACE)
+		usb_mtp_configure();
+		#endif
+		#if defined(EXPERIMENTAL_INTERFACE)
+		endpoint_queue_head[2].unused1 = (uint32_t)experimental_buffer;
 		#endif
 		endpoint0_receive(NULL, 0, 0);
 		return;
@@ -773,16 +786,20 @@ static void endpoint0_complete(void)
 	}
 #endif
 #ifdef SEREMU_INTERFACE
-	if (setup.word1 == 0x03000921 && setup.word2 == ((4<<16)|SEREMU_INTERFACE)
-	  && endpoint0_buffer[0] == 0xA9 && endpoint0_buffer[1] == 0x45
-	  && endpoint0_buffer[2] == 0xC2 && endpoint0_buffer[3] == 0x6B) {
-		printf("seremu reboot request\n");
-		usb_start_sof_interrupts(NUM_INTERFACE);
-		usb_reboot_timer = 80; // TODO: 10 if only 12 Mbit/sec
+	if (setup.word1 == 0x03000921 && setup.word2 == ((4<<16)|SEREMU_INTERFACE)) {
+		if (endpoint0_buffer[0] == 0xA9 && endpoint0_buffer[1] == 0x45
+		  && endpoint0_buffer[2] == 0xC2 && endpoint0_buffer[3] == 0x6B) {
+			printf("seremu reboot request\n");
+			usb_start_sof_interrupts(NUM_INTERFACE);
+			usb_reboot_timer = 80; // TODO: 10 if only 12 Mbit/sec
+		} else {
+			// any other feature report means Arduino Serial Monitor is open
+			usb_seremu_online = 1;
+		}
 	}
 #endif
 #ifdef AUDIO_INTERFACE
-	if (setup.word1 == 0x02010121 /* TODO: check setup.word2 */) {
+	if (setup.word1 == 0x02010121 || setup.word1 == 0x01000121 /* TODO: check setup.word2 */) {
 		usb_audio_set_feature(&endpoint0_setupdata, endpoint0_buffer);
 	}
 #endif
@@ -999,7 +1016,7 @@ void usb_receive(int endpoint_number, transfer_t *transfer)
 
 uint32_t usb_transfer_status(const transfer_t *transfer)
 {
-#if 0
+#if defined(USB_MTPDISK) || defined(USB_MTPDISK_SERIAL)
 	uint32_t status, cmd;
 	//int count=0;
 	cmd = USB1_USBCMD;
@@ -1019,4 +1036,10 @@ uint32_t usb_transfer_status(const transfer_t *transfer)
 #endif
 }
 
+#else // defined(NUM_ENDPOINTS)
 
+void usb_init(void)
+{
+}
+
+#endif // defined(NUM_ENDPOINTS)

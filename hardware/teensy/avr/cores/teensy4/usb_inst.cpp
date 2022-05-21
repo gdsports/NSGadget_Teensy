@@ -100,3 +100,4 @@ usb_seremu_class Serial;
 #endif
 
 #endif // F_CPU
+

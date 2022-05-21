@@ -8,6 +8,7 @@ nullptr	LITERAL1
 noexcept	LITERAL1
 static_assert	LITERAL1
 thread_local	LITERAL1
+size_t	LITERAL1
 
 # teensy specific functions
 elapsedMillis	LITERAL1
@@ -23,6 +24,7 @@ analogWriteFrequency	KEYWORD2
 touchRead	KEYWORD2
 Teensy3Clock	KEYWORD2
 IntervalTimer	KEYWORD2
+CrashReport	KEYWORD1
 printf	KEYWORD2
 digitalWriteFast	KEYWORD2
 digitalReadFast	KEYWORD2
@@ -62,6 +64,11 @@ waitForEvent	KEYWORD2
 MillisTimer	LITERAL1
 beginRepeating	KEYWORD2
 delayNanoseconds	KEYWORD2
+extmem_malloc	KEYWORD2
+extmem_free	KEYWORD2
+extmem_calloc	KEYWORD2
+extmem_realloc	KEYWORD2
+strcasecmp	KEYWORD2
 
 # removed by Arduino 1.0, now also removed from Teensyduino
 #BYTE	LITERAL1
@@ -106,6 +113,9 @@ analogInputToDigitalPin	KEYWORD2
 digitalPinHasPWM	KEYWORD2
 NOT_AN_INTERRUPT	LITERAL1
 digitalPinToInterrupt	KEYWORD2
+FILE_READ	LITERAL1
+FILE_WRITE	LITERAL1
+FILE_WRITE_BEGIN	LITERAL1
 
 # HardwareSerial modes
 SERIAL_7E1	LITERAL1
