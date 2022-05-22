@@ -89,7 +89,7 @@ Gamepad output is managed by the `NSGamepad` instance:
 	NSGamepad.write();            // write to USB
 ```
 
-## D-Pad
+### D-Pad
 
 The direction buttons have eight possible states:
 
@@ -148,7 +148,7 @@ Note that the NS thumbsticks are clickable so they also count as buttons. See
 All buttons can be set at once using the `buttons()` function. This function
 takes a bitfield of button states as its argument.
 
-## Joysticks
+### Joysticks
 
 There are two joysticks on the NS gamepad: left and right. Each axis can be
 set using its respective function:
