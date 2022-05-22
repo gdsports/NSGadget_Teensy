@@ -82,6 +82,7 @@ uint8_t usb_joystick_class::manual_mode = 0;
 
 #ifdef NSGAMEPAD_INTERFACE
 usb_nsgamepad_class NSGamepad;
+usb_serial_class Serial;  // dummy
 #endif
 
 #ifdef USB_DISABLED
@@ -100,3 +101,4 @@ usb_seremu_class Serial;
 #endif
 
 #endif // F_CPU
+

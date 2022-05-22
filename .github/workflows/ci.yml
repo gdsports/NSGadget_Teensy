@@ -1,0 +1,78 @@
+name: build
+
+on: [push, pull_request, workflow_dispatch]
+
+env:
+  IDE_VERSION: 1.8.19
+  TEENSY_VERSION: 156
+  IDE_LOCATION: /usr/local/share/arduino
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        compilation: ['Serial: Blank Sketch', 'NS Gadget: Blank Sketch', 'NSGamepad Example', 'NSPassthru Example', 'NSMIDI Example']
+        include:
+          - compilation: 'Serial: Blank Sketch'
+            sketch: "$IDE_LOCATION/examples/01.Basics/BareMinimum/BareMinimum.ino"
+            usb_mode: serial
+          - compilation: 'NS Gadget: Blank Sketch'
+            sketch: "$IDE_LOCATION/examples/01.Basics/BareMinimum/BareMinimum.ino"
+            usb_mode: nsgamepad
+          - compilation: 'NSGamepad Example'
+            sketch: "./examples/NSGamepad/NSGamepad.ino"
+            usb_mode: nsgamepad
+          - compilation: 'NSPassthru Example'
+            sketch: "./examples/NSGamepad/NSPassthru.ino"
+            usb_mode: nsgamepad
+          - compilation: 'NSMIDI Example'
+            sketch: "./examples/NSGamepad/NSMIDI.ino"
+            usb_mode: nsgamepad
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Arduino IDE
+        run: |
+          wget http://downloads.arduino.cc/arduino-$IDE_VERSION-linux64.tar.xz
+          tar xf arduino-$IDE_VERSION-linux64.tar.xz
+          sudo mv arduino-$IDE_VERSION /usr/local/share/arduino
+          sudo ln -s /usr/local/share/arduino/arduino /usr/local/bin/arduino
+          rm arduino-$IDE_VERSION-linux64.tar.xz
+
+      - name: Install Teensyduino
+        run: |
+          wget https://www.pjrc.com/teensy/td_$TEENSY_VERSION/TeensyduinoInstall.linux64;
+          chmod +x ./TeensyduinoInstall.linux64;
+          sudo ./TeensyduinoInstall.linux64 --dir=/usr/local/share/arduino;
+          rm ./TeensyduinoInstall.linux64;
+
+      - name: Copy NS Gadget Teensy Files
+        run: sudo \cp -r hardware $IDE_LOCATION;
+      
+      - name: Remove Teensy Loader Trigger
+        run: sudo python ./.github/workflows/remove_teensyloader.py $IDE_LOCATION/hardware/teensy/avr/platform.txt
+
+      - name: Teensy LC
+        run: arduino --verify --board teensy:avr:teensyLC:usb=${{ matrix.usb_mode }},speed=48,opt=o2std,keys=en-us ${{ matrix.sketch }};
+
+      - name: Teensy 3.1/ 3.2
+        run: arduino --verify --board teensy:avr:teensy31:usb=${{ matrix.usb_mode }},speed=72,opt=o2std,keys=en-us ${{ matrix.sketch }};
+
+      - name: Teensy 3.5
+        run: arduino --verify --board teensy:avr:teensy35:usb=${{ matrix.usb_mode }},speed=120,opt=o2std,keys=en-us ${{ matrix.sketch }};
+
+      - name: Teensy 3.6
+        run: arduino --verify --board teensy:avr:teensy36:usb=${{ matrix.usb_mode }},speed=180,opt=o2std,keys=en-us ${{ matrix.sketch }};
+
+      - name: Teensy 4.0
+        run: arduino --verify --board teensy:avr:teensy40:usb=${{ matrix.usb_mode }},speed=600,opt=o2std,keys=en-us ${{ matrix.sketch }};
+
+      - name: Teensy 4.1
+        run: arduino --verify --board teensy:avr:teensy41:usb=${{ matrix.usb_mode }},speed=600,opt=o2std,keys=en-us ${{ matrix.sketch }};
+
+      - name: Teensy MicroMod
+        run: arduino --verify --board teensy:avr:teensyMM:usb=${{ matrix.usb_mode }},speed=600,opt=o2std,keys=en-us ${{ matrix.sketch }};
