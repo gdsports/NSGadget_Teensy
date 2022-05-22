@@ -1,31 +1,32 @@
 # Arduino NS Gamepad for Teensy
 
-USB NS Gamepad provides a Nintendo Switch (NS) compatible gamepad. This is
-useful for building an arcade console or to adapt other USB devices for use
-with the NS.
+This project adds a USB mode to the Teensy LC, 3.x, and 4.x development
+boards that allows them to act as a Nintendo Switch (NS) compatible gamepad.
+This is useful for building an arcade console or to adapt other USB devices
+for use with the NS.
 
-This project adds USB HID flight sticks and gamepads to the USBHost_t36
-library so they can be used with the NS.
+In addition to the NS USB mode, this project modifies the [`USBHost_t36` library](https://github.com/PaulStoffregen/USBHost_t36)
+to add support for USB HID flight sticks and gamepads so that they can be used with the NS.
 
+```cpp
+	{ 0x0F0D, 0x00c1, HORIPAD, true},    // Hori Horipad NS compatible gamepad
+	{ 0x0079, 0x0006, DRAGONRISE, true}, // Dragon Rise Fightstick/joystick
+	{ 0x046D, 0xC215, EXTREME3D, true},  // Logitech Extreme 3D Pro
+	{ 0x044F, 0xB10A, T16000M, true}     // Thrustmaster T.16000M FCS
 ```
-	{ 0x0F0D, 0x00c1, HORIPAD, true},   // Hori Horipad NS compatible gamepad
-	{ 0x0079, 0x0006, DRAGONRISE, true},// Dragon Rise Fightstick/joystick
-	{ 0x046D, 0xC215, EXTREME3D, true}, // Logitech Extreme 3D Pro
-	{ 0x044F, 0xB10A, T16000M, true}    // Thrustmaster T.16000M FCS
-```
 
-The Teensy 3.6/4.1 acts as a Teensy-in-the-middle between one or more game
+The Teensy 3.6/4.x acts as a Teensy-in-the-middle between one or more game
 controllers and the NS. This can be used for co-pilot mode as well as simulator
 control panel/button boxes (car, truck, tractor, etc).
 
 This project also provides additional USB device types for Teensy LC, 3.x and
-4.x.
+4.x:
 
-USB Joystick provides a generic joystick. This is known to work with
+* `Joystick` provides a generic USB joystick. This is known to work with
 the Xbox Adaptive Controller (XAC). The XAC is confused by the extra
 USB descriptors in the other Teensy USB Joystick types.
 
-USB Serial + Joystick provides a generic joystick with CDC ACM USB serial.
+* `Joystick + Serial` provides a generic USB joystick with CDC ACM USB serial.
 
 This project has not had much testing so watch out for potholes.
 
