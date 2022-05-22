@@ -80,3 +80,9 @@ cd ~/nsg/arduino-1.8.13
 | [NSMIDI](examples/NSMIDI)         | Using USB host, convert MIDI note on/off data to NS inputs  |
 
 See the example-specific documentation in each folder for reference.
+
+## License
+
+The original Teensy core files and their modified versions are licensed under a modified version of the permissive [MIT license](https://opensource.org/licenses/MIT). Newly contributed files are licensed under the MIT license with no additional stipulations.
+
+See the [LICENSE](LICENSE.txt) file for more information.
