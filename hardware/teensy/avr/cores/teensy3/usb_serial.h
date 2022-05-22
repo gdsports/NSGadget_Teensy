@@ -33,11 +33,11 @@
 
 #include "usb_desc.h"
 
-#if (defined(CDC_STATUS_INTERFACE) && defined(CDC_DATA_INTERFACE)) || defined(USB_DISABLED)
+#if (defined(CDC_STATUS_INTERFACE) && defined(CDC_DATA_INTERFACE)) || defined(USB_DISABLED) || defined(USB_NSGAMEPAD)
 
 #include <inttypes.h>
 
-#if F_CPU >= 20000000 && !defined(USB_DISABLED)
+#if F_CPU >= 20000000 && !(defined(USB_DISABLED) || defined(USB_NSGAMEPAD))
 
 #include "core_pins.h" // for millis()
 

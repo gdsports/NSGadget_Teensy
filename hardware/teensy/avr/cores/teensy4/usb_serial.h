@@ -33,9 +33,9 @@
 #include "usb_desc.h"
 #include <stdint.h>
 
-#if (defined(CDC_STATUS_INTERFACE) && defined(CDC_DATA_INTERFACE)) || defined(USB_DISABLED)
+#if (defined(CDC_STATUS_INTERFACE) && defined(CDC_DATA_INTERFACE)) || defined(USB_DISABLED) || defined(USB_NSGAMEPAD)
 
-#if !defined(USB_DISABLED)
+#if !(defined(USB_DISABLED) || defined(USB_NSGAMEPAD))
 
 // C language implementation
 #ifdef __cplusplus
@@ -126,7 +126,7 @@ extern usb_serial_class Serial;
 extern void serialEvent(void);
 #endif // __cplusplus
 
-#else  // !defined(USB_DISABLED)
+#else  // !(defined(USB_DISABLED) || defined(USB_NSGAMEPAD))
 
 // Allow Arduino programs using Serial to compile, but Serial will do nothing.
 #ifdef __cplusplus
