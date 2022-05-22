@@ -71,6 +71,97 @@ cd ~/nsg/arduino-1.8.13
 ./arduino&
 ```
 
+## Usage
+
+To use the NS USB mode, select "NS Gamepad" from the "Tools > USB Type" menu.
+
+For maximum compatibility with the NS, the USB serial and other USB endpoints
+are not present. The USB descriptors are as much as possible the same as the
+Hori gamepad controller. One consequence is the Teensy auto upload does not
+work. But this is easy to fix. Use the IDE Upload function. After the upload
+fails, press the "Prog" button on the Teensy to start the upload.
+
+Gamepad output is managed by the `NSGamepad` instance:
+
+```cpp
+	NSGamepad.begin();            // initialize the class
+	NSGamepad.press(NSButton_A);  // set the 'A' button state
+	NSGamepad.write();            // write to USB
+```
+
+## D-Pad
+
+The direction buttons have eight possible states:
+
+```
+NSGAMEPAD_DPAD_CENTERED
+NSGAMEPAD_DPAD_UP
+NSGAMEPAD_DPAD_UP_RIGHT
+NSGAMEPAD_DPAD_RIGHT
+NSGAMEPAD_DPAD_DOWN_RIGHT
+NSGAMEPAD_DPAD_DOWN
+NSGAMEPAD_DPAD_DOWN_LEFT
+NSGAMEPAD_DPAD_LEFT
+NSGAMEPAD_DPAD_UP_LEFT
+```
+
+These can be set using the `NSGamepad.dPad()` function:
+
+```cpp
+	NSGamepad.dPad(NSGAMEPAD_DPAD_UP);
+```
+
+Note that the direction buttons (Up, Right, Down, Left) are reported as an 8
+direction D-pad so some combinations cannot be reported.
+
+### Buttons
+
+There are 14 buttons on the NS gamepad:
+
+```
+NSButton_Y 
+NSButton_B
+NSButton_A
+NSButton_X
+NSButton_LeftTrigger
+NSButton_RightTrigger
+NSButton_LeftThrottle
+NSButton_RightThrottle
+NSButton_Minus
+NSButton_Plus
+NSButton_LeftStick
+NSButton_RightStick
+NSButton_Home
+NSButton_Capture
+```
+
+Buttons can be set using the `press()` and `release()` functions:
+
+```cpp
+	NSGamepad.press(NSButton_A);
+	NSGamepad.release(NSButton_A);
+```
+
+Note that the NS thumbsticks are clickable so they also count as buttons. See
+`LeftStick` and `RightStick` above.
+
+All buttons can be set at once using the `buttons()` function. This function
+takes a bitfield of button states as its argument.
+
+## Joysticks
+
+There are two joysticks on the NS gamepad: left and right. Each axis can be
+set using its respective function:
+
+```
+leftXAxis(uint8_t)
+leftYAxis(uint8_t)
+rightXAxis(uint8_t)
+rightYAxis(uint8_t)
+```
+
+The joystick values are in the range 0-255, with 127 being centered.
+
 ## Examples
 
 | Example                           | Description                                                 |
