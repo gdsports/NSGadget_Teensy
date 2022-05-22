@@ -53,6 +53,7 @@ hardware/teensy/**
 !hardware/teensy/avr/cores/teensy3/usb_inst.cpp
 !hardware/teensy/avr/cores/teensy3/usb_nsgamepad.c
 !hardware/teensy/avr/cores/teensy3/usb_nsgamepad.h
+!hardware/teensy/avr/cores/teensy3/usb_serial.h
 !hardware/teensy/avr/cores/teensy3/WProgram.h
 !hardware/teensy/avr/cores/teensy3/yield.cpp
 
@@ -64,5 +65,6 @@ hardware/teensy/**
 !hardware/teensy/avr/cores/teensy4/usb_inst.cpp
 !hardware/teensy/avr/cores/teensy4/usb_nsgamepad.c
 !hardware/teensy/avr/cores/teensy4/usb_nsgamepad.h
+!hardware/teensy/avr/cores/teensy3/usb_serial.h
 !hardware/teensy/avr/cores/teensy4/WProgram.h
 !hardware/teensy/avr/cores/teensy4/yield.cpp
