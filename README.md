@@ -154,10 +154,10 @@ There are two joysticks on the NS gamepad: left and right. Each axis can be
 set using its respective function:
 
 ```
-leftXAxis(uint8_t)
-leftYAxis(uint8_t)
-rightXAxis(uint8_t)
-rightYAxis(uint8_t)
+	NSGamepad.leftXAxis(uint8_t)
+	NSGamepad.leftYAxis(uint8_t)
+	NSGamepad.rightXAxis(uint8_t)
+	NSGamepad.rightYAxis(uint8_t)
 ```
 
 The joystick values are in the range 0-255, with 127 being centered.
