@@ -5,7 +5,7 @@ boards that allows them to act as a Nintendo Switch (NS) compatible gamepad.
 This is useful for building an arcade console or to adapt other USB devices
 for use with the NS.
 
-In addition to the NS USB mode, this project modifies the [`USBHost_t36` library](https://github.com/PaulStoffregen/USBHost_t36)
+In addition to the NS USB mode, this project modifies the [`USBHost_t36` library](https://github.com/PaulStoffregen/USBHost_t36/tree/df0ef72d8d38d88aaf214ec80e6cd66b6f2e76de)
 to add support for USB HID flight sticks and gamepads so that they can be used with the NS.
 
 ```cpp
